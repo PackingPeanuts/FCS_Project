@@ -118,9 +118,8 @@ def about():
 
 def warn_invalid_entry():
     messagebox.showwarning("Invalid Entry",
-                        "Please enter a valid binary sequence")
+                           "Please enter a valid binary sequence")
     return
-
 
 
 root = Tk()
@@ -222,8 +221,6 @@ gen_sequence.set("Empty")
 received_sequence.set("Empty")
 err_sequence.set("Empty")
 
-
-generator("1101101", "10101")
 
 # Run Main Loop
 root.mainloop()
