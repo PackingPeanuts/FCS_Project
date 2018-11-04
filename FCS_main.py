@@ -2,48 +2,12 @@ from tkinter import *
 from tkinter import messagebox
 
 
+# Define variables to be used throughout program
+
 # Define Helper Functions For Operating Procedures
 def check_ones_zeros(strg):
     return set(strg) <= set('01')
 
-
-# Function for performing xor across two strings of 0's and 1's
-def xor(a, b):
-    result = []
-
-    for i in range(1, len(b)):
-        if a[i] == b[i]:
-            result.append('0')
-        else:
-            result.append('1')
-    return ''.join(result)
-
-
-# Function for performing Mod2 Division
-def modulo_div(divisor, dividend):
-
-    # length of divisor and portion of dividend must match
-    extract = len(divisor)
-    portion = dividend[0:extract]
-
-    # work through the division
-    while extract < len(dividend):
-        if portion[0] == '1':
-            portion = xor(divisor, portion) + dividend[extract]
-        else:
-            portion = xor('0'*extract, portion) + dividend[extract]
-        extract += 1
-
-    # compute remainder
-    if portion[0] == '1':
-        remainder = xor(divisor, portion)
-    else:
-        remainder = xor('0'*extract, portion)
-
-    return remainder
-
-
-# Resets all sequence entries
 def reset_sequences():
     data_sequence.set("Empty")
     gen_sequence.set("Empty")
@@ -51,23 +15,24 @@ def reset_sequences():
     err_sequence.set("Empty")
     return
 
+def generator(k_bits, gen_seq):
 
-# Computes FCSBits
-def generator(msg, gen_seq):
-
-    # Calculate padding length
+    # Calculate Necessary Sizes
     n = len(gen_seq) - 1
+    k = len(k_bits)
+    total_length = n + k
 
     # Pad Message bits with Zeros before converting to binary
     padding = '0' * n
-    messagep = msg + padding
+    message = k_bits + padding
 
-    transmitted = msg + modulo_div(gen_seq, messagep)
+    # Convert sequences into binary for calculations
+    message = bin(int(message, base=2))
+    gener = bin(int(gen_seq, base=2))
 
-    print("The Generated Sequence is: ")
-    print(transmitted)
+    print(message)
+    print(gener)
     return
-
 
 # Define Functions for GUI Functionality
 def store_data(event):
@@ -76,7 +41,7 @@ def store_data(event):
         if check_ones_zeros(content):
             data_sequence.set(content)
         else:
-            warn_invalid_entry()
+            print('Invalid Entry')
     return
 
 
@@ -86,7 +51,7 @@ def store_generator(event):
         if check_ones_zeros(content):
             gen_sequence.set(content)
         else:
-            warn_invalid_entry()
+            print('Invalid Entry')
     return
 
 
@@ -96,7 +61,7 @@ def store_received(event):
         if check_ones_zeros(content):
             received_sequence.set(content)
         else:
-            warn_invalid_entry()
+            print('Invalid Entry')
     return
 
 
@@ -106,7 +71,7 @@ def store_error(event):
         if check_ones_zeros(content):
             err_sequence.set(content)
         else:
-            warn_invalid_entry()
+            print('Invalid Entry')
     return
 
 
@@ -114,13 +79,6 @@ def about():
     messagebox.showinfo("Program Authors",
                         "Adrian Martinez\nSimerjit Nagra\nHamed Seyedroudbari")
     return
-
-
-def warn_invalid_entry():
-    messagebox.showwarning("Invalid Entry",
-                        "Please enter a valid binary sequence")
-    return
-
 
 
 root = Tk()
@@ -187,10 +145,10 @@ resetBu = Button(text="Reset Parameters",
                  width=22,
                  command=reset_sequences)
 
-button1.bind("<ButtonRelease-1>", store_data)
-button2.bind("<ButtonRelease-1>", store_generator)
-button3.bind("<ButtonRelease-1>", store_received)
-button4.bind("<ButtonRelease-1>", store_error)
+button1.bind("<Button-1>", store_data)
+button2.bind("<Button-1>", store_generator)
+button3.bind("<Button-1>", store_received)
+button4.bind("<Button-1>", store_error)
 
 # Place Widgets In Window
 button1.grid(row=3, sticky=E, pady=5, padx=5)
@@ -223,7 +181,85 @@ received_sequence.set("Empty")
 err_sequence.set("Empty")
 
 
-generator("1101101", "10101")
-
 # Run Main Loop
 root.mainloop()
+
+
+#Hamed's Part
+def intro():
+    print("Hello Professor Zahid. Welcome to FCS project!")
+    return
+
+def alter (gen, trans, error_seq):
+    print("Enter your error sequence!")
+    error_length = len(error_seq)
+    trans_length = len(trans)
+    gen_length = len(gen)
+    flag = 0
+    while(flag == 0):
+        if(trans_length == error_length):
+            flag = 1
+        else:
+            print("Length Error!")
+            error_seq = input("Enter an error sequence with length %d",trans_length)
+            error_length = len(error_seq)
+            #Display warning message enter new value in GUI
+    received_sequence = xor(trans, error_seq)
+    remainder = modulo_div(gen,received_sequence)
+
+    if(remainder == '0'*(gen_length-1)):
+        print("No error in received sequence")
+    else:
+        print("Error detected in received sequence")
+
+def askForAlter():
+    own = input("Would you like to enter your own error sequence. Enter yes or no")
+    if(own == "yes"):
+        error_seq = input("Enter your error sequence")
+        
+
+
+
+def verifier(k_plus_n, gen):
+    gen_length = len(gen)
+    remained = modulo_div(gen,k_plus_n)
+
+    if(remainder == '0'*(gen_length-1)):
+        print("No error in received sequence")
+    else:
+        print("Error detected in received sequence")
+
+
+def xor(a, b):
+   result = []
+
+   for i in range(1, len(b)):
+       if a[i] == b[i]:
+           result.append('0')
+       else:
+           result.append('1')
+   return ''.join(result)
+
+
+def modulo_div(divisor, dividend):
+   extract = len(divisor)
+
+   portion = dividend[0:extract]
+
+   while extract < len(dividend):
+       if portion[0] == '1':
+           portion = xor(divisor, portion) + dividend[extract]
+       else:
+           portion = xor('0'*extract, portion) + dividend[extract]
+       extract += 1
+
+   if portion[0] == '1':
+       portion = xor(divisor, portion)
+   else:
+       portion = xor('0'*extract, portion)
+
+   remainder = portion
+   return remainder  
+
+
+
