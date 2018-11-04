@@ -2,14 +2,48 @@ from tkinter import *
 from tkinter import messagebox
 
 
-# Define variables to be used throughout program
-
-
 # Define Helper Functions For Operating Procedures
 def check_ones_zeros(strg):
     return set(strg) <= set('01')
 
 
+# Function for performing xor across two strings of 0's and 1's
+def xor(a, b):
+    result = []
+
+    for i in range(1, len(b)):
+        if a[i] == b[i]:
+            result.append('0')
+        else:
+            result.append('1')
+    return ''.join(result)
+
+
+# Function for performing Mod2 Division
+def modulo_div(divisor, dividend):
+
+    # length of divisor and portion of dividend must match
+    extract = len(divisor)
+    portion = dividend[0:extract]
+
+    # work through the division
+    while extract < len(dividend):
+        if portion[0] == '1':
+            portion = xor(divisor, portion) + dividend[extract]
+        else:
+            portion = xor('0'*extract, portion) + dividend[extract]
+        extract += 1
+
+    # compute remainder
+    if portion[0] == '1':
+        remainder = xor(divisor, portion)
+    else:
+        remainder = xor('0'*extract, portion)
+
+    return remainder
+
+
+# Resets all sequence entries
 def reset_sequences():
     data_sequence.set("Empty")
     gen_sequence.set("Empty")
@@ -18,23 +52,20 @@ def reset_sequences():
     return
 
 
+# Computes FCSBits
 def generator(msg, gen_seq):
 
-    # Calculate Necessary Sizes
+    # Calculate padding length
     n = len(gen_seq) - 1
-    k = len(msg)
-    total_length = n + k
 
     # Pad Message bits with Zeros before converting to binary
     padding = '0' * n
-    message = msg + padding
+    messagep = msg + padding
 
-    # Convert sequences into binary for calculations
-    message = bin(int(message, base=2))
-    gener = bin(int(gen_seq, base=2))
+    transmitted = msg + modulo_div(gen_seq, messagep)
 
-    print(message)
-    print(gener)
+    print("The Generated Sequence is: ")
+    print(transmitted)
     return
 
 
@@ -184,6 +215,8 @@ gen_sequence.set("Empty")
 received_sequence.set("Empty")
 err_sequence.set("Empty")
 
+
+generator("1101101", "10101")
 
 # Run Main Loop
 root.mainloop()
