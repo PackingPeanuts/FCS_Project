@@ -55,7 +55,7 @@ def generator(msg, gen_seq, tx_seq):
         transmitted = msg + modulo_div(gen_seq, messagep)
         tx_seq.set(transmitted)
     else:
-        tk.messagebox.showwarning("Missing Parameter", "Please specify both a\nmessage generator\nsequence.")
+        tk.messagebox.showwarning("Missing Parameter", "Please specify both a\nmessage and generator\nsequence.")
     return
 
 
