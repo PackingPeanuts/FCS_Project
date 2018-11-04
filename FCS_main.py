@@ -76,7 +76,7 @@ def store_data(event):
         if check_ones_zeros(content):
             data_sequence.set(content)
         else:
-            print('Invalid Entry')
+            warn_invalid_entry()
     return
 
 
@@ -86,7 +86,7 @@ def store_generator(event):
         if check_ones_zeros(content):
             gen_sequence.set(content)
         else:
-            print('Invalid Entry')
+            warn_invalid_entry()
     return
 
 
@@ -96,7 +96,7 @@ def store_received(event):
         if check_ones_zeros(content):
             received_sequence.set(content)
         else:
-            print('Invalid Entry')
+            warn_invalid_entry()
     return
 
 
@@ -106,7 +106,7 @@ def store_error(event):
         if check_ones_zeros(content):
             err_sequence.set(content)
         else:
-            print('Invalid Entry')
+            warn_invalid_entry()
     return
 
 
@@ -114,6 +114,13 @@ def about():
     messagebox.showinfo("Program Authors",
                         "Adrian Martinez\nSimerjit Nagra\nHamed Seyedroudbari")
     return
+
+
+def warn_invalid_entry():
+    messagebox.showwarning("Invalid Entry",
+                        "Please enter a valid binary sequence")
+    return
+
 
 
 root = Tk()
@@ -180,10 +187,10 @@ resetBu = Button(text="Reset Parameters",
                  width=22,
                  command=reset_sequences)
 
-button1.bind("<Button-1>", store_data)
-button2.bind("<Button-1>", store_generator)
-button3.bind("<Button-1>", store_received)
-button4.bind("<Button-1>", store_error)
+button1.bind("<ButtonRelease-1>", store_data)
+button2.bind("<ButtonRelease-1>", store_generator)
+button3.bind("<ButtonRelease-1>", store_received)
+button4.bind("<ButtonRelease-1>", store_error)
 
 # Place Widgets In Window
 button1.grid(row=3, sticky=E, pady=5, padx=5)
