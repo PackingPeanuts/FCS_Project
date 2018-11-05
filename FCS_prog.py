@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
+# Logic implementation starts here
 def check_ones_zeros(strg):
     return set(strg) <= set('01')
 
@@ -95,19 +96,19 @@ def verifier(tx_seq, gen_seq, term):
 def receiver(size_of_tx, rx_seq, gen_seq, term):
     if rx_seq and size_of_tx:
         if size_of_tx != len(rx_seq):
-            term.configure(state="normal")
+            term.configure(state="normal", fg="red")
             term.insert('end', "\nError Occurred\nIncorrect number of bits were received\n")
             term.see("end")
             term.configure(state="disabled")
         else:
             check = (set(modulo_div(gen_seq, rx_seq)) == set('0'))
             if check:
-                term.configure(state="normal")
+                term.configure(state="normal", fg="green")
                 term.insert('end', "\nI was unable to detect error in the received Frame\n")
                 term.see("end")
                 term.configure(state="disabled")
             else:
-                term.configure(state="normal")
+                term.configure(state="normal", fg="red")
                 term.insert('end', "\nI have detected error in this frame\n")
                 term.see("end")
                 term.configure(state="disabled")
@@ -161,6 +162,7 @@ def alter(gen, trans, error_seq, term):
     return
 
 
+# code for GUI starts here
 def warn_invalid_entry():
     messagebox.showwarning("Invalid Entry",
                            "Please enter a valid binary sequence")
@@ -185,11 +187,6 @@ def store_entry(destination, entry, remove_lead_zeros):
     return
 
 
-# Define Fonts to use throughout frames
-LARGE_FONT = ("Default", 20, "bold")
-OUTPUT_FONT = ("Default", 10)
-
-
 # Define GUI and Frames
 class FCSProg(tk.Tk):
 
@@ -206,28 +203,33 @@ class FCSProg(tk.Tk):
         self.resizable(0, 0)
 
         # Add Menu Items
-        about_menu = tk.Menu()
-        self.configure(menu=about_menu)
-        about_menu.add_command(label="About", command=about)
+        self.about_menu = tk.Menu()
+        self.configure(menu=self.about_menu)
+        self.about_menu.add_command(label="About", command=about)
 
         # Define Container
-        container = tk.Frame(self)
-        container.grid(row=0, sticky="nsew")
-        container.grid_rowconfigure(0, weight=1)
+        self.container = tk.Frame(self)
+        self.container.grid(row=0, sticky="nsew")
+        self.container.grid_rowconfigure(0, weight=1)
 
         self.frames = {}
 
-        frame = MainPage(container, self)
+        self.frame = MainPage(self.container, self)
 
-        self.frames[MainPage] = frame
+        self.frames[MainPage] = self.frame
 
-        frame.grid(row=0, column=0, sticky="nsew")
+        self.frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(MainPage)
 
     def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
+        self.frame = self.frames[cont]
+        self.frame.tkraise()
+
+
+# Define Fonts to use throughout frames
+LARGE_FONT = ("Default", 20, "bold")
+OUTPUT_FONT = ("Default", 10)
 
 
 # Default Program Frame
@@ -239,127 +241,151 @@ class MainPage(tk.Frame):
         self.grid_rowconfigure(1, minsize=10)
         self.grid_rowconfigure(4, minsize=10)
         self.grid_rowconfigure(6, minsize=10)
-        title_label = tk.Label(self, text="ECE 562 FCS Project", fg="white", bg="gray30",
-                               font=LARGE_FONT, relief="groove", bd=2, justify="center")
-        title_label.grid(row=0, column=0, columnspan=10, pady=20, padx=225)
+        self.title_label = tk.Label(self, text="ECE 562 FCS Project", fg="white", bg="gray30",
+                                    font=LARGE_FONT, relief="groove", bd=2, justify="center")
+        self.title_label.grid(row=0, column=0, columnspan=10, pady=20, padx=225)
 
-        output_terminal = tk.Text(self, fg="white", bg="black", font=OUTPUT_FONT,
-                                  bd=2, height=8, width=55, wrap="word")
-        output_terminal.grid(row=11, column=0, columnspan=10, rowspan=4, pady=10, padx=20)
-        output_terminal.insert('end', "Hello Professor Zahid. Welcome to FCS project!\n")
-        output_terminal.see("end")
-        output_terminal.config(state="disabled")
+        self.output_terminal = tk.Text(self, fg="white", bg="black", font=OUTPUT_FONT,
+                                       bd=2, height=8, width=55, wrap="word")
+        self.output_terminal.grid(row=11, column=0, columnspan=10, rowspan=4, pady=10, padx=20)
+        self.output_terminal.insert('end', "Hello Professor Zahid. Welcome to FCS project!\n")
+        self.output_terminal.see("end")
+        self.output_terminal.config(state="disabled")
 
-        width_entry_slot = 30
-        width_entry_buttons = 22
-        pady_entry_buttons = 5
-        padx_entry_buttons = 5
+        self.width_entry_slot = 30
+        self.width_entry_buttons = 22
+        self.pady_entry_buttons = 5
+        self.padx_entry_buttons = 5
 
-        width_command_buttons = 22
-        pady_command_buttons = 10
-        padx_command_buttons = 10
+        self.width_command_buttons = 22
+        self.pady_command_buttons = 10
+        self.padx_command_buttons = 10
 
-        width_seq_label = 20
+        self.width_seq_label = 20
 
         # Define Entries for Obtaining bit Sequences
-        message_entry = tk.Entry(self, width=width_entry_slot)
-        gensequ_entry = tk.Entry(self, width=width_entry_slot)
-        receive_entry = tk.Entry(self, width=width_entry_slot)
-        alterer_entry = tk.Entry(self, width=width_entry_slot)
+        self.message_entry = tk.Entry(self, width=self.width_entry_slot)
+        self.gensequ_entry = tk.Entry(self, width=self.width_entry_slot)
+        self.receive_entry = tk.Entry(self, width=self.width_entry_slot)
+        self.alterer_entry = tk.Entry(self, width=self.width_entry_slot)
 
-        message_entry.bind("<Return>", lambda x: store_entry(msg_seq, message_entry, 0))
-        gensequ_entry.bind("<Return>", lambda x: store_entry(gsq_seq, gensequ_entry, 1))
-        receive_entry.bind("<Return>", lambda x: store_entry(rx_seq, receive_entry, 0))
-        alterer_entry.bind("<Return>", lambda x: store_entry(ex_seq, alterer_entry, 0))
+        self.message_entry.bind("<Return>", lambda x: store_entry(self.msg_seq, self.message_entry, 0))
+        self.gensequ_entry.bind("<Return>", lambda x: store_entry(self.gsq_seq, self.gensequ_entry, 1))
+        self.receive_entry.bind("<Return>", lambda x: store_entry(self.rx_seq, self.receive_entry, 0))
+        self.alterer_entry.bind("<Return>", lambda x: store_entry(self.ex_seq, self.alterer_entry, 0))
 
-        message_entry.grid(row=2, column=3, columnspan=2)
-        gensequ_entry.grid(row=3, column=3, columnspan=2)
-        receive_entry.grid(row=8, column=3, columnspan=2)
-        alterer_entry.grid(row=9, column=3, columnspan=2)
+        self.message_entry.grid(row=2, column=3, columnspan=2)
+        self.gensequ_entry.grid(row=3, column=3, columnspan=2)
+        self.receive_entry.grid(row=8, column=3, columnspan=2)
+        self.alterer_entry.grid(row=9, column=3, columnspan=2)
 
         # Define Storage Buttons for Obtaining bit Sequences
-        message_button = tk.Button(self, text="Store Message Bits",
-                                   width=width_entry_buttons,
-                                   bg="steel blue")
-        message_button.bind("<ButtonRelease-1>", lambda x: store_entry(msg_seq, message_entry, 0))
-        gensequ_button = tk.Button(self, text="Store Generator Bits",
-                                   width=width_entry_buttons,
-                                   bg="medium purple")
-        gensequ_button.bind("<ButtonRelease-1>", lambda x: store_entry(gsq_seq, gensequ_entry, 1))
-        receive_button = tk.Button(self, text="Store Received Bits",
-                                   width=width_entry_buttons,
-                                   bg="medium purple")
-        receive_button.bind("<ButtonRelease-1>", lambda x: store_entry(rx_seq, receive_entry, 0))
-        alterex_button = tk.Button(self, text="Store Alter Sequence",
-                                   width=width_entry_buttons,
-                                   bg="medium purple")
-        alterex_button.bind("<ButtonRelease-1>", lambda x: store_entry(ex_seq, alterer_entry, 0))
+        self.message_button = tk.Button(self, text="Store Message Bits",
+                                        width=self.width_entry_buttons,
+                                        bg="steel blue")
+        self.message_button.bind("<ButtonRelease-1>", lambda x: store_entry(self.msg_seq, self.message_entry, 0))
+        self.gensequ_button = tk.Button(self, text="Store Generator Bits",
+                                        width=self.width_entry_buttons,
+                                        bg="medium purple")
+        self.gensequ_button.bind("<ButtonRelease-1>", lambda x: store_entry(self.gsq_seq, self.gensequ_entry, 1))
+        self.receive_button = tk.Button(self, text="Store Received Bits",
+                                        width=self.width_entry_buttons,
+                                        bg="medium purple")
+        self.receive_button.bind("<ButtonRelease-1>", lambda x: store_entry(self.rx_seq, self.receive_entry, 0))
+        self.alterex_button = tk.Button(self, text="Store Alter Sequence",
+                                        width=self.width_entry_buttons,
+                                        bg="medium purple")
+        self.alterex_button.bind("<ButtonRelease-1>", lambda x: store_entry(self.ex_seq, self.alterer_entry, 0))
+        self.clearal_button = tk.Button(self, text="Clear All Stored Sequences",
+                                        width=self.width_entry_buttons,
+                                        bg="tomato")
+        self.clearal_button.bind("<ButtonRelease-1>", lambda x: self.reset_seqs())
 
-        message_button.grid(row=2, column=1, pady=pady_entry_buttons, padx=padx_entry_buttons)
-        gensequ_button.grid(row=3, column=1, pady=pady_entry_buttons, padx=padx_entry_buttons)
-        receive_button.grid(row=8, column=1, pady=pady_entry_buttons, padx=padx_entry_buttons)
-        alterex_button.grid(row=9, column=1, pady=pady_entry_buttons, padx=padx_entry_buttons)
+        self.message_button.grid(row=2, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.gensequ_button.grid(row=3, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.receive_button.grid(row=8, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.alterex_button.grid(row=9, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.clearal_button.grid(row=7, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
 
         # Define Command Buttons to Execute Programs
-        generat_button = tk.Button(self, text="Generate Tx",
-                                   width=width_command_buttons,
-                                   bg="medium sea green")
-        verifie_button = tk.Button(self, text="Verify Tx",
-                                   width=width_command_buttons,
-                                   bg="pale violet red")
-        receive_button = tk.Button(self, text="Receiver",
-                                   width=width_command_buttons,
-                                   bg="light steel blue3")
-        alterer_button = tk.Button(self, text="Alter",
-                                   width=width_command_buttons,
-                                   bg="indian red2")
+        self.generat_button = tk.Button(self, text="Generate Tx",
+                                        width=self.width_command_buttons,
+                                        bg="medium sea green")
+        self.verifie_button = tk.Button(self, text="Verify Tx",
+                                        width=self.width_command_buttons,
+                                        bg="pale violet red")
+        self.receive_button = tk.Button(self, text="Receiver",
+                                        width=self.width_command_buttons,
+                                        bg="light steel blue3")
+        self.alterer_button = tk.Button(self, text="Alter",
+                                        width=self.width_command_buttons,
+                                        bg="indian red2")
 
-        generat_button.bind("<ButtonRelease-1>", lambda x: generator(msg_seq.get(), gsq_seq.get(),
-                                                                     tx_seq, output_terminal))
-        verifie_button.bind("<ButtonRelease-1>", lambda x: verifier(tx_seq.get(), gsq_seq.get(),
-                                                                    output_terminal))
-        receive_button.bind("<ButtonRelease-1>", lambda x: receiver(len(tx_seq.get()), rx_seq.get(),
-                                                                    gsq_seq.get(), output_terminal))
-        alterer_button.bind("<ButtonRelease-1>", lambda x: alter(gsq_seq.get(), tx_seq.get(),
-                                                                 ex_seq.get(), output_terminal))
+        self.generat_button.bind("<ButtonRelease-1>", lambda x: generator(self.msg_seq.get(), self.gsq_seq.get(),
+                                                                          self.tx_seq, self.output_terminal))
+        self.verifie_button.bind("<ButtonRelease-1>", lambda x: verifier(self.tx_seq.get(), self.gsq_seq.get(),
+                                                                         self.output_terminal))
+        self.receive_button.bind("<ButtonRelease-1>", lambda x: receiver(len(self.tx_seq.get()), self.rx_seq.get(),
+                                                                         self.gsq_seq.get(), self.output_terminal))
+        self.alterer_button.bind("<ButtonRelease-1>", lambda x: alter(self.gsq_seq.get(), self.tx_seq.get(),
+                                                                      self.ex_seq.get(), self.output_terminal))
 
-        generat_button.grid(row=5, column=1, pady=pady_command_buttons, padx=padx_command_buttons)
-        verifie_button.grid(row=5, column=3, pady=pady_command_buttons, padx=padx_command_buttons)
-        receive_button.grid(row=5, column=5, pady=pady_command_buttons, padx=padx_command_buttons)
-        alterer_button.grid(row=5, column=7, pady=pady_command_buttons, padx=padx_command_buttons)
+        self.generat_button.grid(row=5, column=1, pady=self.pady_command_buttons, padx=self.padx_command_buttons)
+        self.verifie_button.grid(row=5, column=3, pady=self.pady_command_buttons, padx=self.padx_command_buttons)
+        self.receive_button.grid(row=5, column=5, pady=self.pady_command_buttons, padx=self.padx_command_buttons)
+        self.alterer_button.grid(row=5, column=7, pady=self.pady_command_buttons, padx=self.padx_command_buttons)
 
         # Create containers for the binary sequences
-        tx_seq = tk.StringVar()
-        rx_seq = tk.StringVar()
-        ex_seq = tk.StringVar()
-        msg_seq = tk.StringVar()
-        gsq_seq = tk.StringVar()
+        self.tx_seq = tk.StringVar()
+        self.rx_seq = tk.StringVar()
+        self.ex_seq = tk.StringVar()
+        self.msg_seq = tk.StringVar()
+        self.gsq_seq = tk.StringVar()
 
         # Create labels for displaying the sequences
-        tx_label = tk.Label(self, textvariable=tx_seq, width=width_seq_label, bg="slategray3", relief="groove")
-        rx_label = tk.Label(self, textvariable=rx_seq, width=width_seq_label, bg="slategray3", relief="groove")
-        ex_label = tk.Label(self, textvariable=ex_seq, width=width_seq_label, bg="slategray3", relief="groove")
-        msg_label = tk.Label(self, textvariable=msg_seq, width=width_seq_label, bg="slategray2", relief="groove")
-        gsq_label = tk.Label(self, textvariable=gsq_seq, width=width_seq_label, bg="slategray2", relief="groove")
+        self.tx_label = tk.Label(self, textvariable=self.tx_seq, width=self.width_seq_label,
+                                 bg="slategray3", relief="groove")
+        self.rx_label = tk.Label(self, textvariable=self.rx_seq, width=self.width_seq_label,
+                                 bg="slategray3", relief="groove")
+        self.ex_label = tk.Label(self, textvariable=self.ex_seq, width=self.width_seq_label,
+                                 bg="slategray3", relief="groove")
+        self.msg_label = tk.Label(self, textvariable=self.msg_seq, width=self.width_seq_label,
+                                  bg="slategray2", relief="groove")
+        self.gsq_label = tk.Label(self, textvariable=self.gsq_seq, width=self.width_seq_label,
+                                  bg="slategray2", relief="groove")
 
-        msg_id = tk.Label(self, text="Stored Message:", width=width_seq_label, bg="mediumpurple4", fg="white")
-        gsq_id = tk.Label(self, text="Stored Generator:", width=width_seq_label, bg="mediumpurple4", fg="white")
-        tx_id = tk.Label(self, text="Tx Sequence:", width=width_seq_label, bg="mediumpurple4", fg="white")
-        rx_id = tk.Label(self, text="Rx Sequence:", width=width_seq_label, bg="mediumpurple4", fg="white")
-        ex_id = tk.Label(self, text="Ex Sequence:", width=width_seq_label, bg="mediumpurple4", fg="white")
+        self.msg_id = tk.Label(self, text="Stored Message:", width=self.width_seq_label,
+                               bg="mediumpurple4", fg="white")
+        self.gsq_id = tk.Label(self, text="Stored Generator:", width=self.width_seq_label,
+                               bg="mediumpurple4", fg="white")
+        self.tx_id = tk.Label(self, text="Tx Sequence:", width=self.width_seq_label,
+                              bg="mediumpurple4", fg="white")
+        self.rx_id = tk.Label(self, text="Rx Sequence:", width=self.width_seq_label,
+                              bg="mediumpurple4", fg="white")
+        self.ex_id = tk.Label(self, text="Ex Sequence:", width=self.width_seq_label,
+                              bg="mediumpurple4", fg="white")
 
-        tx_id.grid(row=7, column=5, sticky="e", pady=pady_entry_buttons)
-        tx_label.grid(row=7, column=7, sticky="w", pady=padx_entry_buttons)
-        rx_id.grid(row=8, column=5, sticky="e", pady=pady_entry_buttons)
-        rx_label.grid(row=8, column=7, sticky="w", pady=pady_entry_buttons)
-        ex_id.grid(row=9, column=5, sticky="e", pady=pady_entry_buttons)
-        ex_label.grid(row=9, column=7, sticky="w", pady=pady_entry_buttons)
+        self.tx_id.grid(row=7, column=5, sticky="e", pady=self.pady_entry_buttons)
+        self.tx_label.grid(row=7, column=7, sticky="w", pady=self.padx_entry_buttons)
+        self.rx_id.grid(row=8, column=5, sticky="e", pady=self.pady_entry_buttons)
+        self.rx_label.grid(row=8, column=7, sticky="w", pady=self.pady_entry_buttons)
+        self.ex_id.grid(row=9, column=5, sticky="e", pady=self.pady_entry_buttons)
+        self.ex_label.grid(row=9, column=7, sticky="w", pady=self.pady_entry_buttons)
 
-        msg_id.grid(row=2, column=5, sticky="e")
-        msg_label.grid(row=2, column=7, columnspan=2, sticky="w")
-        gsq_id.grid(row=3, column=5, sticky="e")
-        gsq_label.grid(row=3, column=7, columnspan=2, sticky="w")
+        self.msg_id.grid(row=2, column=5, sticky="e")
+        self.msg_label.grid(row=2, column=7, columnspan=2, sticky="w")
+        self.gsq_id.grid(row=3, column=5, sticky="e")
+        self.gsq_label.grid(row=3, column=7, columnspan=2, sticky="w")
+
+    def reset_seqs(self):
+        self.tx_seq.set("")
+        self.rx_seq.set("")
+        self.ex_seq.set("")
+        self.msg_seq.set("")
+        self.gsq_seq.set("")
+# code for GUI ends here
 
 
+# execute program:
 app = FCSProg()
 app.mainloop()
