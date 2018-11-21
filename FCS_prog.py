@@ -62,6 +62,7 @@ def generator(msg, gen_seq, tx_seq, term):
         transmitted = msg + fcs_bits
         tx_seq.set(transmitted)
         term.configure(state="normal")
+        term.insert('end', "\nRunning Generator Program:\n\n")
         term.insert('end', "\nFrom %s and %s, the FCS bits %s were generated\n" % (msg, gen_seq, fcs_bits))
         term.insert('end', "\nThe transmitted sequence is %s\n" % transmitted)
         term.see("end")
@@ -78,12 +79,14 @@ def verifier(tx_seq, gen_seq, term):
         success = (set(modulo_div(gen_seq, tx_seq)) <= set('0'))
 
         if success:
-            term.configure(state="normal", fg="green")
+            term.configure(state="normal")
+            term.insert('end', "\nRunning Verifier Program:\n\n")
             term.insert('end', "\nNo Error detected in received sequence\n")
             term.see("end")
             term.configure(state="disabled")
         else:
-            term.configure(state="normal", fg="red")
+            term.configure(state="normal")
+            term.insert('end', "\nRunning Verifier Program:\n\n")
             term.insert('end', "Error detected in received sequence\n")
             term.see("end")
             term.configure(state="disabled")
@@ -96,25 +99,33 @@ def verifier(tx_seq, gen_seq, term):
 def receiver(size_of_tx, rx_seq, gen_seq, term):
     if rx_seq and size_of_tx:
         if size_of_tx != len(rx_seq):
-            term.configure(state="normal", fg="red")
+            term.configure(state="normal")
+            term.insert('end', "\nRunning Receiver Program:\n\n")
             term.insert('end', "\nError Occurred\nIncorrect number of bits were received\n")
             term.see("end")
             term.configure(state="disabled")
         else:
-            check = (set(modulo_div(gen_seq, rx_seq)) == set('0'))
+            remainder = modulo_div(gen_seq, rx_seq)
+            check = (set(remainder) == set('0'))
             if check:
-                term.configure(state="normal", fg="green")
+                term.configure(state="normal")
+                term.insert('end', "\nRunning Receiver Program:\n\n")
+                term.insert('end', "\nThe remainder obtained is %s\n" % remainder)
                 term.insert('end', "\nI was unable to detect error in the received Frame\n")
                 term.see("end")
                 term.configure(state="disabled")
             else:
-                term.configure(state="normal", fg="red")
+                term.configure(state="normal")
+                term.insert('end', "\nRunning Receiver Program:\n\n")
+                term.insert('end', "\nThe remainder obtained is %s\n" % remainder)
                 term.insert('end', "\nI have detected error in this frame\n")
                 term.see("end")
                 term.configure(state="disabled")
     else:
-        tk.messagebox.showwarning("Missing Rx", "Please Specify a received sequence first.")
-
+        if not gen_seq:
+            tk.messagebox.showwarning("Missing Tx", "Please generate a transmitted sequence first.")
+        if not rx_seq:
+            tk.messagebox.showwarning("Missing Rx", "Please Specify a received sequence first.")
     return
 
 
@@ -138,6 +149,7 @@ def alter(gen, trans, error_seq, term):
 
         received_sequence = xor(trans, error_seq)
         term.configure(state="normal")
+        term.insert('end', "\nRunning Alter Program:\n")
         term.insert('end', "\nThis error sequence produces the received sequence %s\n" % received_sequence)
         term.see("end")
         term.configure(state="disabled")
@@ -150,12 +162,12 @@ def alter(gen, trans, error_seq, term):
         term.configure(state="disabled")
 
         if remainder == '0'*(gen_length-1):
-            term.configure(state="normal", fg="green")
+            term.configure(state="normal")
             term.insert('end', "\nNo error detected in received sequence\n")
             term.see("end")
             term.configure(state="disabled")
         else:
-            term.configure(state="normal", fg="red")
+            term.configure(state="normal")
             term.insert('end', "\nError detected in received sequence\n")
             term.see("end")
             term.configure(state="disabled")
@@ -254,6 +266,7 @@ class MainPage(tk.Frame):
 
         self.width_entry_slot = 30
         self.width_entry_buttons = 22
+        self.width_reset_buttons = 18
         self.pady_entry_buttons = 5
         self.padx_entry_buttons = 5
 
@@ -296,16 +309,21 @@ class MainPage(tk.Frame):
                                         width=self.width_entry_buttons,
                                         bg="medium purple")
         self.alterex_button.bind("<ButtonRelease-1>", lambda x: store_entry(self.ex_seq, self.alterer_entry, 0))
-        self.clearal_button = tk.Button(self, text="Clear All Stored Sequences",
-                                        width=self.width_entry_buttons,
+        self.clearal_button = tk.Button(self, text="Reset Stored Sequences",
+                                        width=self.width_reset_buttons,
                                         bg="tomato")
         self.clearal_button.bind("<ButtonRelease-1>", lambda x: self.reset_seqs())
+        self.clrterm_button = tk.Button(self, text="Reset Terminal",
+                                        width=self.width_reset_buttons,
+                                        bg="tomato")
+        self.clrterm_button.bind("<ButtonRelease-1>", lambda x: self.reset_term())
 
         self.message_button.grid(row=2, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
         self.gensequ_button.grid(row=3, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
         self.receive_button.grid(row=8, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
         self.alterex_button.grid(row=9, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
-        self.clearal_button.grid(row=7, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.clearal_button.grid(row=12, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
+        self.clrterm_button.grid(row=13, column=1, pady=self.pady_entry_buttons, padx=self.padx_entry_buttons)
 
         # Define Command Buttons to Execute Programs
         self.generat_button = tk.Button(self, text="Generate Tx",
@@ -383,6 +401,13 @@ class MainPage(tk.Frame):
         self.ex_seq.set("")
         self.msg_seq.set("")
         self.gsq_seq.set("")
+
+    def reset_term(self):
+        self.output_terminal.configure(state="normal", fg="white")
+        self.output_terminal.delete('1.0',"end")
+        self.output_terminal.insert('end', "Hello Professor Zahid. Welcome to FCS project!\n")
+        self.output_terminal.see("end")
+        self.output_terminal.config(state="disabled")
 # code for GUI ends here
 
 
